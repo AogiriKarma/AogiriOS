@@ -13,3 +13,9 @@ Je m'autorise l'utilisation de l'IA. Déjà, elle corrigera les nombreuses faute
 ## Introduction
 
 Je suis Karma, développeur depuis maintenant 8 ans. Dans mon parcours scolaire et personnel, j'ai principalement utilisé C#, Python, PHP, JS et depuis peu, Go. Je commence à m'intéresser au low-level, que ce soit les langages ou les applications. Ici vous pourrez voir mes tests et recherches sur le monde de l'OS au même rythme que je fais moi-même les découvertes. Je pars avec de très mauvaises bases pour ce genre de projet (peu de C, pas d'assembly) mais ce qui compte c'est les amis que nous nous faisons en chemin. (je vais souffrir)
+
+## Commandes importantes : 
+
+Sur linux (Arch linux) j'utilise ces commandes pour build et run mes bootloader : 
+ - nasm -f bin file.asm -o file.bin
+ - qemu-system-x86_64 file.bin
