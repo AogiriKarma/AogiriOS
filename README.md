@@ -33,20 +33,6 @@ Lancer dans QEMU :
 qemu-system-x86_64 file.bin
 ```
 
-## Structure du projet
-
-```
-AogiriOS/
-├── code/
-│   └── bootloader/
-│       ├── first/              # Boot sector minimal (boucle infinie)
-│       ├── hello-world/        # Affichage texte avec INT 10h (TTY)
-│       └── memory_mixin/       # Adressage mémoire et INT 10h fonction 13h
-└── docs/
-    ├── index.md                # Présentation du projet
-    └── journal.md              # Journal de bord détaillé
-```
-
 ## Documentation
 
 La doc complète est dans [docs/index.md](docs/index.md), et le journal de bord dans [docs/journal.md](docs/journal.md).
