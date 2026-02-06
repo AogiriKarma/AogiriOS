@@ -211,15 +211,15 @@ Ici le code est assez simple, `text` est défini à `"AogiriOS"` et `msg_len` de
 
 ## Jour 2
 
-J'aprehende beaucoup ce jour parceque c'est la que je vais probablement commencer a voir les problèmes de start un projet big avec aucune compétence pour me back up.
+J'appréhende beaucoup ce jour parce que c'est là que je vais probablement commencer à voir les problèmes de start un projet big avec aucune compétence pour me back up.
 
-Malgré tout je continue de regarder le github https://github.com/cfenollosa/os-tutorial/tree/master/04-bootsector-stack c'est a la que je suis et le comcept ne me parait pas étranger, je connaissais deja l'existance de la stack je ne savais par contre pas comment elle etait stocké, le fait que ce soit un emplacement du registre qui contienne l'adresse m'as pas mal étonné (bp) en paralèle un autre registre tient le haut de la pile (sp) ce qui veux dire que quand on initialise bp a une adresse mémoire, qui doit d'ailleur etre plus grande que 0x07E00 (0X07C00 + 512 octet du bootsector), on doit aussi set sp a bp ensuite quand on push on ajoute a la stack ce qui fait bouger le sp mais pas le bp.
+Malgré tout je continue de regarder le GitHub <https://github.com/cfenollosa/os-tutorial/tree/master/04-bootsector-stack> c'est là que je suis et le concept ne me paraît pas étranger, je connaissais déjà l'existence de la stack je ne savais par contre pas comment elle était stockée, le fait que ce soit un emplacement du registre qui contienne l'adresse m'a pas mal étonné (`bp`) en parallèle un autre registre tient le haut de la pile (`sp`) ce qui veut dire que quand on initialise `bp` à une adresse mémoire, qui doit d'ailleurs être plus grande que `0x07E00` (`0x07C00` + 512 octets du boot sector), on doit aussi set `sp` à `bp` ensuite quand on push on ajoute à la stack ce qui fait bouger le `sp` mais pas le `bp`.
 
-En savant ca on peux donc crée une nouvelle methode pour ecrire notre texte (oui encore une)
+En sachant ça on peut donc créer une nouvelle méthode pour écrire notre texte (oui encore une)
 
 
-```
-[org 0x7c00] ; place ou sera load le boot sector ALWAYS THE SAME (offset toutes les adresses par celles ci ensuite)
+```asm
+[org 0x7c00] ; place où sera load le boot sector ALWAYS THE SAME (offset toutes les adresses par celle-ci ensuite)
 
 xor ax,ax      ; We want a segment of 0 for DS for this question
 mov ds,ax      ;     Set AX to appropriate segment value for your situation
@@ -275,27 +275,26 @@ times 510 - ($-$$) db 0
 dw 0xaa55
 ```
 
-pour cette version j'ai décidé de changer la manière de faire. je crée des pseudo methode pour nos bout de code et au debut du fichier j'ai ajouter du code servant a trust les registres que j'utilise. ca viens de ces deux posts stackoverflow ou j'ai lu a propos de bonnes pratiques:
+Pour cette version j'ai décidé de changer la manière de faire. Je crée des pseudo-méthodes pour nos bouts de code et au début du fichier j'ai ajouté du code servant à trust les registres que j'utilise. Ça vient de ces deux posts StackOverflow où j'ai lu à propos de bonnes pratiques :
 
-https://stackoverflow.com/questions/43359327/default-registers-and-segments-value-on-booting-x86-machine
-https://stackoverflow.com/questions/32701854/boot-loader-doesnt-jump-to-kernel-code/32705076#32705076
+- <https://stackoverflow.com/questions/43359327/default-registers-and-segments-value-on-booting-x86-machine>
+- <https://stackoverflow.com/questions/32701854/boot-loader-doesnt-jump-to-kernel-code/32705076#32705076>
 
-ensuite j'ai write_stack:
+Ensuite j'ai `write_stack` :
 
-pour cette methode j'en ai chier, je veux pouvoir ecrire sur l'ecran un character, ca facile je le fais depuis le debut quasiment, MAIS LA... le charactère viens du stack dans le code vous pouvez voir pop ax ce qui veux dire, met le top du registre dans ax, et la normalement vous faites un infarctus parceque je vous disais que la lettre etait a mettre dan al et pas ax, bon pour etre honete, mettre dans ax met dans al aussi MAIS ax = 16bit ah = 8 premier bit et al = aux 8 derniers, mais comme quand on met un charactère dans le stack c'est forcément 16bit on peux pas pop dans al, par contre quand on pop dans ax il met les 8 derniers dans al et comme nos 8 derniers c'est le charactère.. bah ca marche, faut set le ah a chaque fois par contre mais a part ca ca marche hehehe
+Pour cette méthode j'en ai chié, je veux pouvoir écrire sur l'écran un caractère, ça facile je le fais depuis le début quasiment, MAIS LÀ... le caractère vient du stack dans le code vous pouvez voir `pop ax` ce qui veut dire, met le top du registre dans `ax`, et là normalement vous faites un infarctus parce que je vous disais que la lettre était à mettre dans `al` et pas `ax`, bon pour être honnête, mettre dans `ax` met dans `al` aussi MAIS `ax` = 16 bits `ah` = 8 premiers bits et `al` = les 8 derniers, mais comme quand on met un caractère dans le stack c'est forcément 16 bits on peut pas pop dans `al`, par contre quand on pop dans `ax` il met les 8 derniers dans `al` et comme nos 8 derniers c'est le caractère... bah ça marche, faut set le `ah` à chaque fois par contre mais à part ça ça marche hehehe
 
-le clear screen on connait deja
+Le `clear_screen` on connaît déjà.
 
-maintenant le main:
+Maintenant le `main` :
 
-le main c'est le programe principale, quand je le lance je vais ajouter au stack, mais la vous regarder les push et vous m'insulter normalement. CALMEZ-VOUS, le stack fonctionne a l'envers ce qui veux dire que last in first out, ou en francais "le dernier que c'est que t'as push qu'il est le premier a pop"
+Le `main` c'est le programme principal, quand je le lance je vais ajouter au stack, mais là vous regardez les push et vous m'insultez normalement. CALMEZ-VOUS, le stack fonctionne à l'envers ce qui veut dire que last in first out, ou en français "le dernier que c'est que t'as push qu'il est le premier a pop"
 
+Le dernier truc restant à expliquer ce sont les `call` et les `ret`. Jusqu'à maintenant on utilisait `jmp`, mais le problème de `jmp` c'est qu'il reprend de là où on l'a lancé mais revient pas là où il était à la fin de l'ancre, nan il continue ce qui crée une boucle infinie pour ça, j'ai trouvé ce cours d'assembleur et ces deux mots-clés :
 
-le dernier truc restant a expliquer ce sont les call et les ret. jusqu'a maintenant on utilisait jmp, mais le problème de jmp c'est qu'il reprend de la ou on l'a lancé mais reviens pas la ou il etait a la fin de l'ancre, nan il continue ce qui crée une boucle infini pour ca, j'ai trouvé ce cours d'assembly et ces deux mots-clé : 
+`call` et `ret`
 
-call et ret
+<https://e-ressources.univ-avignon.fr/assembleur/co/8_1.html>
 
-https://e-ressources.univ-avignon.fr/assembleur/co/8_1.html
-
-pour faire simple c'est dans les 3/4 des langages courant l'equivalent d'un appel de fonction puis d'un return. sauf qu'en assembleur fo le spécifier son truc de con.. bref comme ca notre code marche. et il est 00:13 donc la suite au jour 3 je crois.
+Pour faire simple c'est dans les 3/4 des langages courants l'équivalent d'un appel de fonction puis d'un return. Sauf qu'en assembleur faut le spécifier son truc de con... bref comme ça notre code marche. Et il est 00:13 donc la suite au jour 3 je crois.
 
