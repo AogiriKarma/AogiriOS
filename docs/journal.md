@@ -298,3 +298,17 @@ Le dernier truc restant à expliquer ce sont les `call` et les `ret`. Jusqu'à m
 
 Pour faire simple c'est dans les 3/4 des langages courants l'équivalent d'un appel de fonction puis d'un return. Sauf qu'en assembleur faut le spécifier son truc de con... bref comme ça notre code marche. Et il est 00:13 donc la suite au jour 3 je crois.
 
+## Jour 3
+
+Bon.. il est toujours 00:13 mais je suis accro donc on va continuer.
+
+Prochaine étape c'est... aucune idée alons voir ce que nous propose le tuto github
+
+Ok, le 5 est pas fou, il nous montre les fonctions.. oupss.. bon bah au moins y nous dit aussi comment include des fichier 
+
+%include "file.asm"
+
+pourquoi pas.. on verra si je trouve une utilité plus tard.
+
+on regarde le 6 bon c'est cryptic mais ca parle de segmentation et d'emplacement mémoire.. pourquoi pas aussi mais pour l'instant je m'en sors pas mal voyons voir la suite, j'ai vraiment envie de passer mon bootloader au niveau supérieur, voir attaquer le kernel etc.
+
