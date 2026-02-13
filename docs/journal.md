@@ -312,3 +312,81 @@ pourquoi pas.. on verra si je trouve une utilité plus tard.
 
 on regarde le 6 bon c'est cryptic mais ca parle de segmentation et d'emplacement mémoire.. pourquoi pas aussi mais pour l'instant je m'en sors pas mal voyons voir la suite, j'ai vraiment envie de passer mon bootloader au niveau supérieur, voir attaquer le kernel etc.
 
+
+## Jour 4
+
+Je retrouve enfin du temps pour travailler dessus, je reprend la ou j'en etait.
+
+Je commence par crée une lib pour mon bootloader, le but est d'avoir des methodes propres et simple a utiliser plus tard, celle que je crée en premier est `boot_print.asm` elle sert a gérer le texte, clear et write un char ou un string, on utilise bx pour passer les strings puisque c'est un registre qui sert a contenir des addresse mémoire on utilise le 0x00 comme délimiteur de fin de string puisque il n'a pas d'equivalent ascii (fin si c'est nul mais ducoup il en a pas vraiment quoi..).
+
+Maintenant, je veux executer du code depuis le disque, pour ensuite pouvoir y placer mon Kernel puis mon OS.
+
+Pour ce faire j'ai crée bood_disk.asm 
+
+```
+; ===========================================
+; boot_disk.asm - Lecture disque 16 bits
+; ===========================================
+
+; ------------------------------------------
+; disk_load - Charge des secteurs du disque en RAM
+; Input: 
+;   dh = nombre de secteurs à lire
+;   dl = numéro du disque (le BIOS le met déjà pour toi)
+;   bx = adresse RAM où charger les données
+; Output: rien (données chargées à l'adresse bx)
+; ------------------------------------------
+disk_load:
+    pusha
+    push dx             ; sauvegarde dh (nombre de secteurs demandés)
+
+    mov ah, 0x02        ; fonction BIOS "lire secteurs"
+    mov al, dh          ; nombre de secteurs à lire
+    mov cl, 0x02        ; secteur de départ (0x02 = juste après le boot sector)
+    mov ch, 0x00        ; cylindre 0
+    mov dh, 0x00        ; tête 0
+    ; dl = numéro du disque, déjà set par le BIOS
+
+    int 0x13            ; appel BIOS
+    jc .disk_error      ; si erreur (carry flag), on saute
+
+    pop dx              ; récupère le nombre de secteurs demandés
+    cmp al, dh          ; compare avec le nombre lu (retourné dans al)
+    jne .sectors_error  ; si différent, erreur
+
+    popa
+    ret
+
+.disk_error:
+    mov bx, DISK_ERROR_MSG
+    call print_string
+    jmp $
+
+.sectors_error:
+    mov bx, SECTORS_ERROR_MSG
+    call print_string
+    jmp $
+
+DISK_ERROR_MSG: db "Disk read error!", 0
+SECTORS_ERROR_MSG: db "Wrong sector count!", 0
+
+```
+
+dans ce script le depart c'est pusha et ca se termine quand ca reussis par popa c'est les deux commandes pour stash les registres dans le stack et les remettre en place ensuite il me permet de remettre les registres dans l etat ou ils etaient avant que je fasse quoi que ce soit. 
+
+push dx — sauvegarde le nombre de secteurs demandés (dans dh) parce qu'on va écraser dx après
+Les mov configurent INT 13h fonction 02h (lire secteurs) :
+ah = 0x02 — fonction "lire"
+al = dh — nombre de secteurs
+cl = 0x02 — secteur de départ (2 = juste après le boot sector)
+ch = 0x00 — cylindre 0
+dh = 0x00 — tête 0
+dl — numéro du disque (déjà mis par le BIOS)
+int 0x13 — appelle le BIOS
+jc .disk_error — si le carry flag est set, y'a eu une erreur
+pop dx puis cmp al, dh — vérifie qu'on a lu le bon nombre de secteurs
+
+Code adapté du tuto os-tutorial et de la doc INT 13h
+http://stanislavs.org/helppc/int_13-1.html
+
+
